@@ -22,7 +22,7 @@ def flip(grid):
 def formattedGrid(grid):
     return [[[cell[0] for cell in row] for row in floor] for floor in grid]
 
-def win():
+def win(winner):
     print(f"{winner} won")
     time.sleep(5)
     exit()
@@ -44,14 +44,14 @@ def checkFloor(floor):
 
     return None
 
-def checkfor3s():
+def checkfor3s(grid):
     global winner
     for floor in grid:
         floorFormatted = [[cell[0] for cell in row] for row in floor]
         won = checkFloor(floorFormatted)
         if won != None:
             winner = won
-            win()
+            return winner
     wholeFormatted = formattedGrid(grid)
     wholeFormattedFlipped = flip(wholeFormatted)
     for floor in wholeFormattedFlipped:
@@ -68,6 +68,7 @@ def checkfor3s():
 def check(x, y, floor):
     check1 = False
     check2 = False
+    print("FLOOR:", floor, "ROW:", y, "COL:", x)
     if floor > 0:
         if floor > 1:
             if grid[floor-2][y][x][0] != "":
@@ -79,8 +80,7 @@ def check(x, y, floor):
     return True
 
 def modifyBoard(x, y, floor, rep):
-    if not check(x, y, floor):
-        return
+    print(floor)
     space = grid[floor][y][x]
     space[0] = rep
     butt = space[1]
@@ -89,27 +89,77 @@ def modifyBoard(x, y, floor, rep):
 
 def change(x, y, floor, root):
     global activePlayer
-    modifyBoard(x, y, floor, activePlayer)
+    if check(x, y, floor):
+        modifyBoard(x, y, floor, activePlayer)
     match activePlayer:
         case "X":
             activePlayer = "O"
         case "O":
             activePlayer = "X"
     root.title(f"3D Tic Tac Toe with gravity - {activePlayer}'s turn")
-    winner = checkfor3s()
+    winner = checkfor3s(grid)
     if winner:
         win(winner)
 
 def ai(grid):
-    # do algorithm things
-    formattedgrid = formattedGrid(grid)
-    print(formattedgrid)
+    f, r, c = 0, 0, 0
+    possibleMoves = [[[False, False, False] for _ in range(3)] for _ in range(3)]
+    for floor in grid:
+        for row in floor:
+            for col in row:
+                if check(c, r, f) and formattedGrid(grid)[f][r][c] != "O":
+                    print(possibleMoves)
+                    possibleMoves[f][r][c] = True
+                c += 1
+            c = 0
+            r += 1
+        r = 0
+        f += 1
+    f = 0
+    winningMoves = []
+    for floor in possibleMoves:
+        for row in floor:
+            for col in row:
+                if col:
+                    potgrid = [x for x in grid]
+                    potgrid[f][r][c][0] = "X"
+                    if checkfor3s(potgrid) == "X":
+                        winningMoves.append([f, r, c])
+                c += 1
+            c = 0
+            r += 1
+        r = 0
+        f += 1
+    f = 0
+    if len(winningMoves) == 0:
+        global movex, movey, movef 
+        movex, movey, movef = 0,0,0
+        for floor in grid:
+            for row in floor:
+                for col in row:
+                    if check(c, r, f) and formattedGrid(grid)[f][r][c] != "O":
+                        movex = c
+                        movey = r
+                        movef = f
+                        break
+                    c += 1
+                c = 0
+                r += 1
+            r = 0
+            f += 1
+        c = 0
+        r = 0
+        f = 0
+        modifyBoard(movex, movey, movef, "X")
+    else:
+        print(winningMoves)
+
 
 def changeAI(x, y, floor):
     modifyBoard(x, y, floor, "O")
-    checkfor3s()
+    print(checkfor3s(grid))
     ai(grid)
-    checkfor3s()
+    print(checkfor3s(grid))
 
 def human():
     global rootroot
