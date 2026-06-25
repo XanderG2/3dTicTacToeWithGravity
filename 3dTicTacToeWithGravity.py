@@ -3,7 +3,9 @@ from tkinter import ttk
 from functools import partial
 import time
 
-grid = [[[[""], [""], [""]] for _ in range(3)] for _ in range(3)]
+grid: list[list[list[list[ttk.Button | None]]]] = [
+    [[[None], [None], [None]] for _ in range(3)] for _ in range(3)
+]
 activePlayer = "X"
 winner = None
 
@@ -49,11 +51,16 @@ def flip(grid):
 
 
 def formattedGrid(grid):
-    return [[[cell[0] for cell in row] for row in floor] for floor in grid]
+    return [
+        [
+            [cell[0] for cell in row]
+            for row in floor]
+        for floor in grid
+    ]
 
 
 def win(winner):
-    print(f"{winner} won")
+    print(f"{winner} won.")
     time.sleep(5)
     exit()
 
@@ -101,14 +108,14 @@ def checkfor3s(grid):
     for floor in grid:
         floorFormatted = [[cell[0] for cell in row] for row in floor]
         won = checkFloor(floorFormatted)
-        if won != None:
+        if won is not None:
             winner = won
             return winner
     wholeFormatted = formattedGrid(grid)
     wholeFormattedFlipped = flip(wholeFormatted)
     for floor in wholeFormattedFlipped:
         won = checkFloor(floor)
-        if won != None:
+        if won is not None:
             winner = won
             return winner
 
@@ -147,29 +154,28 @@ def checkfor3s(grid):
             return wholeFormatted[0][2][x]
 
     won = check3dDiagonals(wholeFormattedFlipped)
-    if won != None:
+    if won is not None:
         winner = won
         return winner
     return False
 
 
 def check(x, y, floor):
-    check1 = False
-    check2 = False
-    print("FLOOR:", floor, "ROW:", y, "COL:", x)
-    if floor > 0:
-        if floor > 1:
-            if grid[floor-2][y][x][0] != "":
-                check2 = True
-        if grid[floor-1][y][x][0] != "":
-            check1 = True
-    if not (((floor > 1 and check1) and check2) or (floor == 1 and check1) or (floor == 0)):
+    print(grid[floor][y][x])
+    if grid[floor][y][x][0] is not None:
+        print(1, "F")
         return False
-    return True
+
+    if floor == 0:
+        print(2, "T")
+        return True
+
+    print(3, grid[floor - 1][y][x][0] is not None)
+    return grid[floor - 1][y][x][0] is not None
 
 
 def modifyBoard(x, y, floor, rep):
-    print(floor)
+    # print(floor)
     space = grid[floor][y][x]
     space[0] = rep
     butt = space[1]
@@ -179,13 +185,16 @@ def modifyBoard(x, y, floor, rep):
 
 def change(x, y, floor, root):
     global activePlayer
+    modded = False
     if check(x, y, floor):
         modifyBoard(x, y, floor, activePlayer)
-    match activePlayer:
-        case "X":
-            activePlayer = "O"
-        case "O":
-            activePlayer = "X"
+        modded = True
+    if modded:
+        match activePlayer:
+            case "X":
+                activePlayer = "O"
+            case "O":
+                activePlayer = "X"
     root.title(f"3D Tic Tac Toe with gravity - {activePlayer}'s turn")
     winner = checkfor3s(grid)
     if winner:
@@ -201,7 +210,7 @@ def ai(grid):
         for row in floor:
             for col in row:
                 if check(c, r, f) and formattedGrid(grid)[f][r][c] != "O":
-                    print(possibleMoves)
+                    # print(possibleMoves)
                     possibleMoves[f][r][c] = True
                 c += 1
             c = 0
@@ -245,14 +254,15 @@ def ai(grid):
         f = 0
         modifyBoard(movex, movey, movef, "X")
     else:
-        print(winningMoves)
+        pass
+        # print(winningMoves)
 
 
 def changeAI(x, y, floor):
     modifyBoard(x, y, floor, "O")
-    print(checkfor3s(grid))
+    # print(checkfor3s(grid))
     ai(grid)
-    print(checkfor3s(grid))
+    # print(checkfor3s(grid))
 
 
 def human():
@@ -303,14 +313,17 @@ def main():
     rootroot = tk.Tk()
     rootroot.geometry("240x50")
     rootroot.title("3D Tic Tac Toe with gravity - Choose /computer/ or human")
-    label = ttk.Label(rootroot, text="Choose /computer/ or human").grid(
-        row=0, column=0)
+    label = ttk.Label(rootroot, text="Choose /computer/ or human")
+    label.grid(row=0, column=0)
     button = ttk.Button(rootroot, text="Computer WIP",
-                        command=computer, state="disable").grid(row=1, column=0)
+                        command=computer, state="disable")
+    button.grid(row=1, column=0)
     button2 = ttk.Button(rootroot, text="Human",
-                         command=human).grid(row=1, column=2)
+                         command=human)
+    button2.grid(row=1, column=2)
     quitk = tk.Tk()
-    quitbtn = ttk.Button(quitk, text="quit", command=exit).pack()
+    quitbtn = ttk.Button(quitk, text="quit", command=exit)
+    quitbtn.pack()
     rootroot.mainloop()
     quitk.mainloop
 
