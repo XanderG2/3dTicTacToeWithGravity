@@ -61,14 +61,32 @@ def formattedGrid(grid):
     ]
 
 
-def win(winner):
-    global grid
-    print(f"{winner} won.")
-    grid = [
-        [[[None], [None], [None]] for i in range(3)] for j in range(3)
-    ]
-    time.sleep(3)
-    human()
+def new_game(root):
+    global grid, activePlayer
+
+    activePlayer = "X"
+    root.title("3D Tic Tac Toe with gravity - X's turn")
+
+    for floor in grid:
+        for row in floor:
+            for cell in row:
+                cell[0] = None
+                button = cell[1]
+                button.config(text="")
+                button.state(["!disabled"])
+
+
+def win(root, winner):
+    root.title(f"{winner} wins!")
+
+    # Disable every button
+    for floor in grid:
+        for row in floor:
+            for cell in row:
+                if len(cell) > 1:
+                    cell[1].state(["disabled"])
+
+    root.after(3000, lambda: new_game(root))
 
 
 def checkFloor(floor):
@@ -195,7 +213,7 @@ def change(x, y, floor, root):
     root.title(f"3D Tic Tac Toe with gravity - {activePlayer}'s turn")
     winner = checkfor3s(grid)
     if winner:
-        win(winner)
+        win(root, winner)
 
 
 def human():
