@@ -1,10 +1,12 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, font
 from functools import partial
 import time
 
+# TODO: implement AI
+
 grid: list[list[list[list[ttk.Button | None]]]] = [
-    [[[None], [None], [None]] for _ in range(3)] for _ in range(3)
+    [[[None], [None], [None]] for i in range(3)] for j in range(3)
 ]
 activePlayer = "X"
 winner = None
@@ -12,7 +14,7 @@ winner = None
 
 def check3dDiagonals(grid):
     if (
-        grid[0][0][0] != ""
+        grid[0][0][0] is not None
         and grid[0][0][0]
         == grid[1][1][1]
         == grid[2][2][2]
@@ -20,7 +22,7 @@ def check3dDiagonals(grid):
         return grid[0][0][0]
 
     if (
-        grid[0][0][2] != ""
+        grid[0][0][2] is not None
         and grid[0][0][2]
         == grid[1][1][1]
         == grid[2][2][0]
@@ -28,7 +30,7 @@ def check3dDiagonals(grid):
         return grid[0][0][2]
 
     if (
-        grid[0][2][2] != ""
+        grid[0][2][2] is not None
         and grid[0][2][2]
         == grid[1][1][1]
         == grid[2][0][0]
@@ -36,7 +38,7 @@ def check3dDiagonals(grid):
         return grid[0][2][2]
 
     if (
-        grid[0][2][0] != ""
+        grid[0][2][0] is not None
         and grid[0][2][0]
         == grid[1][1][1]
         == grid[2][0][2]
@@ -60,9 +62,13 @@ def formattedGrid(grid):
 
 
 def win(winner):
+    global grid
     print(f"{winner} won.")
-    time.sleep(5)
-    exit()
+    grid = [
+        [[[None], [None], [None]] for i in range(3)] for j in range(3)
+    ]
+    time.sleep(3)
+    human()
 
 
 def checkFloor(floor):
@@ -118,10 +124,9 @@ def checkfor3s(grid):
         if won is not None:
             winner = won
             return winner
-
     for y in range(3):
         if (
-            wholeFormatted[0][y][0] != ""
+            wholeFormatted[0][y][0] is not None
             and wholeFormatted[0][y][0]
             == wholeFormatted[1][y][1]
             == wholeFormatted[2][y][2]
@@ -129,16 +134,15 @@ def checkfor3s(grid):
             return wholeFormatted[0][y][0]
 
         if (
-            wholeFormatted[0][y][2] != ""
+            wholeFormatted[0][y][2] is not None
             and wholeFormatted[0][y][2]
             == wholeFormatted[1][y][1]
             == wholeFormatted[2][y][0]
         ):
             return wholeFormatted[0][y][2]
-
     for x in range(3):
         if (
-            wholeFormatted[0][0][x] != ""
+            wholeFormatted[0][0][x] is not None
             and wholeFormatted[0][0][x]
             == wholeFormatted[1][1][x]
             == wholeFormatted[2][2][x]
@@ -146,13 +150,12 @@ def checkfor3s(grid):
             return wholeFormatted[0][0][x]
 
         if (
-            wholeFormatted[0][2][x] != ""
+            wholeFormatted[0][2][x] is not None
             and wholeFormatted[0][2][x]
             == wholeFormatted[1][1][x]
             == wholeFormatted[2][0][x]
         ):
             return wholeFormatted[0][2][x]
-
     won = check3dDiagonals(wholeFormattedFlipped)
     if won is not None:
         winner = won
@@ -161,21 +164,15 @@ def checkfor3s(grid):
 
 
 def check(x, y, floor):
-    print(grid[floor][y][x])
     if grid[floor][y][x][0] is not None:
-        print(1, "F")
         return False
 
     if floor == 0:
-        print(2, "T")
         return True
-
-    print(3, grid[floor - 1][y][x][0] is not None)
     return grid[floor - 1][y][x][0] is not None
 
 
 def modifyBoard(x, y, floor, rep):
-    # print(floor)
     space = grid[floor][y][x]
     space[0] = rep
     butt = space[1]
@@ -201,70 +198,6 @@ def change(x, y, floor, root):
         win(winner)
 
 
-def ai(grid):
-    # Under progress
-    f, r, c = 0, 0, 0
-    possibleMoves = [[[False, False, False]
-                      for _ in range(3)] for _ in range(3)]
-    for floor in grid:
-        for row in floor:
-            for col in row:
-                if check(c, r, f) and formattedGrid(grid)[f][r][c] != "O":
-                    # print(possibleMoves)
-                    possibleMoves[f][r][c] = True
-                c += 1
-            c = 0
-            r += 1
-        r = 0
-        f += 1
-    f = 0
-    winningMoves = []
-    for floor in possibleMoves:
-        for row in floor:
-            for col in row:
-                if col:
-                    potgrid = [x for x in grid]
-                    potgrid[f][r][c][0] = "X"
-                    if checkfor3s(potgrid) == "X":
-                        winningMoves.append([f, r, c])
-                c += 1
-            c = 0
-            r += 1
-        r = 0
-        f += 1
-    f = 0
-    if len(winningMoves) == 0:
-        global movex, movey, movef
-        movex, movey, movef = 0, 0, 0
-        for floor in grid:
-            for row in floor:
-                for col in row:
-                    if check(c, r, f) and formattedGrid(grid)[f][r][c] != "O":
-                        movex = c
-                        movey = r
-                        movef = f
-                        break
-                    c += 1
-                c = 0
-                r += 1
-            r = 0
-            f += 1
-        c = 0
-        r = 0
-        f = 0
-        modifyBoard(movex, movey, movef, "X")
-    else:
-        pass
-        # print(winningMoves)
-
-
-def changeAI(x, y, floor):
-    modifyBoard(x, y, floor, "O")
-    # print(checkfor3s(grid))
-    ai(grid)
-    # print(checkfor3s(grid))
-
-
 def human():
     global rootroot
     rootroot.withdraw()
@@ -275,52 +208,42 @@ def human():
     root.rowconfigure(list(range(12)), weight=1, uniform="Silent_Creme")
     for f in range(3):
         floor = ttk.Frame(root)
-        floor.grid(column=f*4, row=0, columnspan=3, rowspan=3)
+        floor.grid(column=f*4, row=0, columnspan=3, rowspan=4)
         for i in range(3):
             for j in range(3):
                 butt = ttk.Button(
                     floor, text="", command=partial(change, i, j, f, root))
                 butt.grid(row=j, column=i, ipadx=25, ipady=30)
                 grid[f][j][i].append(butt)
+        flrlbl = ttk.Label(floor, text=f"Floor {f}")
+        flrlbl.grid(row=3, column=1, ipadx=25)
 
-    root.mainloop()
-
-
-def computer():
-    # Under progress
-    global rootroot
-    rootroot.withdraw()
-    root = tk.Toplevel(rootroot)
-    root.title("3D Tic Tac Toe with gravity - vs AI")
-    root.geometry("1350x300")
-    root.columnconfigure(list(range(12)), weight=1, uniform="Silent_Creme")
-    root.rowconfigure(list(range(12)), weight=1, uniform="Silent_Creme")
-    for f in range(3):
-        floor = ttk.Frame(root)
-        floor.grid(column=f*4, row=0, columnspan=3, rowspan=3)
-        for i in range(3):
-            for j in range(3):
-                butt = ttk.Button(
-                    floor, text="", command=partial(changeAI, i, j, f))
-                butt.grid(row=j, column=i, ipadx=25, ipady=30)
-                grid[f][j][i].append(butt)
-    ai(grid)
     root.mainloop()
 
 
 def main():
     global rootroot
     rootroot = tk.Tk()
-    rootroot.geometry("240x50")
-    rootroot.title("3D Tic Tac Toe with gravity - Choose /computer/ or human")
-    label = ttk.Label(rootroot, text="Choose /computer/ or human")
-    label.grid(row=0, column=0)
-    button = ttk.Button(rootroot, text="Computer WIP",
-                        command=computer, state="disable")
-    button.grid(row=1, column=0)
-    button2 = ttk.Button(rootroot, text="Human",
-                         command=human)
-    button2.grid(row=1, column=2)
+    TkHeadingFont = font.Font(size=29, family="Papyrus")
+    papyrus = font.Font(size=13, family="Papyrus")
+    rootroot.title("3D Tic Tac Toe with gravity")
+    rootroot.config(bg="#1a1a1a")
+    title = tk.Label(rootroot, text="3D Tic Tac Toe with gravity",
+                     font=TkHeadingFont, bg="#1a1a1a", fg="white")
+    title.grid(row=0, column=0)
+    rules = tk.Label(rootroot, text="Regular tic tac toe rules apply, however you can also place ontop of other Xs or Os, and form diagonals/straight lines with those aswell.",
+                     font=papyrus, bg="#1a1a1a", fg="white")
+    rules.grid(row=1, column=0)
+    button2 = ttk.Button(rootroot, text="Start",
+                         command=human, padding=(20, 20))
+    style = ttk.Style()
+    style.theme_use("clam")
+    style.configure("TButton", background="#1a1a1a",
+                    foreground="#2a2a2a", relief="raised")
+    style.map("Tbutton",
+              background=[("active", "#1a1a1a")],
+              foreground=[("active", "#3a3a3a")])
+    button2.grid(row=2, column=0)
     quitk = tk.Tk()
     quitbtn = ttk.Button(quitk, text="quit", command=exit)
     quitbtn.pack()
